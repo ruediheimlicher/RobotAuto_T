@@ -15,17 +15,29 @@
 #include <driver/adc.h>
 
 
+#define ESPOK 0
+
+
 // REPLACE WITH YOUR ESP RECEIVER'S MAC ADDRESS
 uint8_t broadcastAddress1[] = {0x48, 0x3F, 0xDA, 0xA4, 0x36, 0x57};
 uint8_t broadcastAddress2[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 uint8_t broadcastAddress3[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
-typedef struct test_struct {
-  uint16_t x;
-  int y;
-} test_struct;
+typedef struct canal_struct 
+{
+  uint16_t lx;
+  uint16_t ly;
+  uint16_t rx;
+  uint16_t ry;
+ 
 
-test_struct test;
+  int x;
+  int y;
+} canal_struct;
+
+//Create a struct_message called canaldata
+canal_struct canaldata;
+
 
 esp_now_peer_info_t peerInfo;
 
@@ -78,26 +90,38 @@ void setup() {
    pinMode(8,INPUT);
    adc1_config_width(ADC_WIDTH_BIT_12);
    adc1_config_channel_atten(ADC1_CHANNEL_0,ADC_ATTEN_DB_0);
-   adc1_config_channel_atten(ADC1_CHANNEL_1,ADC_ATTEN_DB_0);
+   adc1_config_channel_atten(ADC1_CHANNEL_3,ADC_ATTEN_DB_0);
   
 }
+ uint8_t loopstatus = 0;
  
 void loop() {
-  test.x = adc1_get_raw(ADC1_CHANNEL_0);
-  test.y = adc1_get_raw(ADC1_CHANNEL_3);
- Serial.print(test.x);
+  canaldata.x = adc1_get_raw(ADC1_CHANNEL_0);
+  canaldata.y = adc1_get_raw(ADC1_CHANNEL_3);
+  canaldata.lx = adc1_get_raw(ADC1_CHANNEL_0);
+  canaldata.ly = adc1_get_raw(ADC1_CHANNEL_3);
+
+  
+ Serial.print(canaldata.lx);
   Serial.print(" ");
-  Serial.println(test.y);
-  esp_err_t result = esp_now_send(0, (uint8_t *) &test, sizeof(test_struct));
+  Serial.println(canaldata.ly);
+  //if(loopstatus & (1<<ESPOK))
+  {
+  esp_err_t result = esp_now_send(0, (uint8_t *) &canaldata, sizeof(canaldata));
 //Serial.print("result: ");
    //Serial.println(result);
-  if (result == ESP_OK) {
-    //Serial.println("Sent with success");
-    //Serial.print("test.x: ");
+  if (result == ESP_OK) 
+  {
+    loopstatus |= (1<<ESPOK);
+    
+    Serial.println("Sent with success");
+    //Serial.print("canaldata.x: ");
    
   }
   else {
+    loopstatus &= ~(1<<ESPOK);
     Serial.println("Error sending the data");
   }
-  delay(20);
+  }
+  delay(200);
 }

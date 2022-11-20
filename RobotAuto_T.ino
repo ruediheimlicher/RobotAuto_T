@@ -13,10 +13,11 @@
 #include <WiFi.h>
 
 #include <driver/adc.h>
-
+#include "elapsedMillis.h"
 
 #define ESPOK 0
 
+#define SENDINTERVALL 20
 
 // REPLACE WITH YOUR ESP RECEIVER'S MAC ADDRESS
 uint8_t broadcastAddress1[] = {0x48, 0x3F, 0xDA, 0xA4, 0x36, 0x57};
@@ -38,6 +39,9 @@ typedef struct canal_struct
 //Create a struct_message called canaldata
 canal_struct canaldata;
 
+elapsedMillis sendtimer;
+
+
 
 esp_now_peer_info_t peerInfo;
 
@@ -52,6 +56,7 @@ void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
   //Serial.print(" send status:\t");
   //Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Delivery Success" : "Delivery Fail");
 }
+
  
 void setup() {
   Serial.begin(115200);
@@ -102,26 +107,17 @@ void loop() {
   canaldata.ly = adc1_get_raw(ADC1_CHANNEL_3);
 
   
- Serial.print(canaldata.lx);
-  Serial.print(" ");
-  Serial.println(canaldata.ly);
+ //Serial.print(canaldata.lx);
+ // Serial.print(" ");
+ // Serial.println(canaldata.ly);
   //if(loopstatus & (1<<ESPOK))
+  if (sendtimer > SENDINTERVALL)
   {
-  esp_err_t result = esp_now_send(0, (uint8_t *) &canaldata, sizeof(canaldata));
-//Serial.print("result: ");
+    sendtimer = 0;
+    esp_err_t result = esp_now_send(0, (uint8_t *) &canaldata, sizeof(canaldata));
+  //Serial.print("result: ");
    //Serial.println(result);
-  if (result == ESP_OK) 
-  {
-    loopstatus |= (1<<ESPOK);
-    
-    Serial.println("Sent with success");
-    //Serial.print("canaldata.x: ");
-   
+
   }
-  else {
-    loopstatus &= ~(1<<ESPOK);
-    Serial.println("Error sending the data");
-  }
-  }
-  delay(200);
+ // delay(50);
 }

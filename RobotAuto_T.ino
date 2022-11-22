@@ -30,7 +30,8 @@ typedef struct canal_struct
   uint16_t ly;
   uint16_t rx;
   uint16_t ry;
- 
+
+ uint16_t digi;
 
   int x;
   int y;
@@ -96,27 +97,32 @@ void setup() {
    adc1_config_width(ADC_WIDTH_BIT_12);
    adc1_config_channel_atten(ADC1_CHANNEL_0,ADC_ATTEN_DB_0);
    adc1_config_channel_atten(ADC1_CHANNEL_3,ADC_ATTEN_DB_0);
+//   adc1_config_channel_atten(ADC1_CHANNEL_6,ADC_ATTEN_DB_0);
+//   adc1_config_channel_atten(ADC1_CHANNEL_7,ADC_ATTEN_DB_0);
+
   
 }
  uint8_t loopstatus = 0;
  
 void loop() {
-  canaldata.x = adc1_get_raw(ADC1_CHANNEL_0);
-  canaldata.y = adc1_get_raw(ADC1_CHANNEL_3);
   canaldata.lx = adc1_get_raw(ADC1_CHANNEL_0);
   canaldata.ly = adc1_get_raw(ADC1_CHANNEL_3);
+ // canaldata.lx = adc1_get_raw(ADC1_CHANNEL_6);
+ // canaldata.ly = adc1_get_raw(ADC1_CHANNEL_7);
 
   
- //Serial.print(canaldata.lx);
- // Serial.print(" ");
- // Serial.println(canaldata.ly);
-  //if(loopstatus & (1<<ESPOK))
+   //if(loopstatus & (1<<ESPOK))
   if (sendtimer > SENDINTERVALL)
   {
     sendtimer = 0;
+    Serial.print(canaldata.lx);
+  Serial.print(" ");
+ Serial.println(canaldata.ly);
+
     esp_err_t result = esp_now_send(0, (uint8_t *) &canaldata, sizeof(canaldata));
   //Serial.print("result: ");
    //Serial.println(result);
+   
 
   }
  // delay(50);
